@@ -13,11 +13,26 @@ streamlit.markdown("Flagged anomalous readings from the baseline")
 
 
 def db_ready():
+    """Check that the table exists, has rows, AND has anomaly_detected populated."""
     try:
         con = sqlite3.connect(DB)
-        count = con.execute('SELECT COUNT(*) FROM heartrate').fetchone()[0]
+        cur = con.cursor()
+        # Check rows exist
+        count = cur.execute('SELECT COUNT(*) FROM heartrate').fetchone()[0]
+        if count == 0:
+            con.close()
+            return False
+        # Check anomaly_detected column exists and has values
+        cols = [row[1] for row in cur.execute('PRAGMA table_info(heartrate)').fetchall()]
+        if 'anomaly_detected' not in cols:
+            con.close()
+            return False
+        # Check it's actually populated (not all NULL)
+        filled = cur.execute(
+            'SELECT COUNT(*) FROM heartrate WHERE anomaly_detected IS NOT NULL'
+        ).fetchone()[0]
         con.close()
-        return count > 0
+        return filled > 0
     except sqlite3.OperationalError:
         return False
 

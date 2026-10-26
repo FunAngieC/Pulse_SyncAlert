@@ -3,6 +3,7 @@ import sqlite3
 import pandas
 import statistics
 import os
+import time
 
 # pages/ is one level below the main app folder — go up one to find the db
 DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "synthetic_database.db")
@@ -17,17 +18,10 @@ def db_ready():
     try:
         con = sqlite3.connect(DB)
         cur = con.cursor()
-        # Check rows exist
-        count = cur.execute('SELECT COUNT(*) FROM heartrate').fetchone()[0]
-        if count == 0:
-            con.close()
-            return False
-        # Check anomaly_detected column exists and has values
         cols = [row[1] for row in cur.execute('PRAGMA table_info(heartrate)').fetchall()]
         if 'anomaly_detected' not in cols:
             con.close()
             return False
-        # Check it's actually populated (not all NULL)
         filled = cur.execute(
             'SELECT COUNT(*) FROM heartrate WHERE anomaly_detected IS NOT NULL'
         ).fetchone()[0]
@@ -37,12 +31,19 @@ def db_ready():
         return False
 
 
+# Wait up to 30 seconds for the dashboard to finish setting up the data
 if not db_ready():
-    streamlit.warning(
-        "Data is still being set up. Please open the **Pulse SyncAlert Dashboard** "
-        "page first, then return here."
-    )
-    streamlit.stop()
+    with streamlit.spinner("Waiting for data to finish loading — please wait…"):
+        for _ in range(15):  # try every 2 seconds for up to 30 seconds
+            time.sleep(2)
+            if db_ready():
+                streamlit.rerun()
+        # If still not ready after 30 seconds, show message
+        streamlit.warning(
+            "Data is still being set up. Please open the **Pulse SyncAlert Dashboard** "
+            "page first, then return here."
+        )
+        streamlit.stop()
 
 
 def get_bpm():

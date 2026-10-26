@@ -4,8 +4,8 @@ import pandas
 import statistics
 import os
 
-# Absolute path — same folder as this file
-DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "synthetic_database.db")
+# pages/ is one level below the main app folder — go up one to find the db
+DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "synthetic_database.db")
 
 streamlit.set_page_config(page_title="Pulse SyncAlert", page_icon="❤️")
 streamlit.title("🚨 Anomaly Log")

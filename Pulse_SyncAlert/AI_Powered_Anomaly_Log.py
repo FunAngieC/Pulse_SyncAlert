@@ -8,13 +8,13 @@ import time
 # pages/ is one level below the main app folder — go up one to find the db
 DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "synthetic_database.db")
 
+
 streamlit.set_page_config(page_title="Pulse SyncAlert", page_icon="❤️")
 streamlit.title("🚨 Anomaly Log")
 streamlit.markdown("Flagged anomalous readings from the baseline")
 
 
 def db_ready():
-    """Check that the table exists, has rows, AND has anomaly_detected populated."""
     try:
         con = sqlite3.connect(DB)
         cur = con.cursor()
@@ -31,14 +31,12 @@ def db_ready():
         return False
 
 
-# Wait up to 30 seconds for the dashboard to finish setting up the data
 if not db_ready():
     with streamlit.spinner("Waiting for data to finish loading — please wait…"):
-        for _ in range(15):  # try every 2 seconds for up to 30 seconds
+        for _ in range(15):
             time.sleep(2)
             if db_ready():
                 streamlit.rerun()
-        # If still not ready after 30 seconds, show message
         streamlit.warning(
             "Data is still being set up. Please open the **Pulse SyncAlert Dashboard** "
             "page first, then return here."
@@ -49,7 +47,7 @@ if not db_ready():
 def get_bpm():
     con = sqlite3.connect(DB)
     cur = con.cursor()
-    output = cur.execute('SELECT bpm FROM "heartrate"').fetchall()
+    output = cur.execute('SELECT bpm FROM heartrate').fetchall()
     con.close()
     return output
 

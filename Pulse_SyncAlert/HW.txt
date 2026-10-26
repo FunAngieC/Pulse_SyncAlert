@@ -1,4 +1,0 @@
-How to organize the web page tabs: https://docs.streamlit.io/develop/api-reference/navigation/st.navigation
-(Put this in Pulse_SyncAlert_Dashboard)
-
-Presentation first
